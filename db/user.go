@@ -5,6 +5,7 @@ import (
 )
 
 type User struct {
+	id    int64
 	Name  string
 	Email string
 }
@@ -40,6 +41,16 @@ func (store *Store) GetUserById(id int64) (User, error) {
 	return user, nil
 }
 
+func (store *Store) GetUserIdByEmail(email string) (int64, error) {
+	var id int64
+	err := store.db.QueryRow("SELECT id FROM User WHERE email = ?", email).Scan(&id)
+	if err != nil {
+		log.Printf("failed to get USER id[%v]\n", err.Error())
+		return -1, nil
+	}
+	return id, nil
+}
+
 func (store *Store) RegisterUser(name string, email string, password string) (User, error) {
 	row, err := store.db.Exec("INSERT INTO User (user_name, email, password) VALUES(? , ?, ?)", name, email, password)
 	if err != nil {
@@ -48,4 +59,31 @@ func (store *Store) RegisterUser(name string, email string, password string) (Us
 	}
 	id, _ := row.LastInsertId()
 	return store.GetUserById(id)
+}
+
+func (store *Store) UpdateUserInfo(preEmail string, email string, name string) (User, error) {
+	row, err := store.db.Exec("UPDATE User SET email = ?, user_name = ? WHERE email = ?", email, name, preEmail)
+	if err != nil {
+		log.Printf("failed to update user[%v]\n", err.Error())
+		return User{}, nil
+	}
+	if rowCount, err := row.RowsAffected(); rowCount == 0 || err != nil {
+		log.Printf("failed to update user[%v]\n", err.Error())
+		return User{}, nil
+	}
+	id, err := store.GetUserIdByEmail(email)
+	if err != nil {
+		log.Printf("failed to get new user[%v]\n", err.Error())
+		return User{}, nil
+	}
+	return store.GetUserById(id)
+}
+
+func (store *Store) DeleteUser(id int64) error {
+	_, err := store.db.Exec("DELETE FROM User WHERE id = ?", id)
+	if err != nil {
+		log.Printf("failed to delete user[%v]\n", err.Error())
+		return err
+	}
+	return nil
 }
