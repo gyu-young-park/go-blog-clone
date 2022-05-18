@@ -23,11 +23,7 @@ func NewServer(store *db.Store) *Server {
 func (server *Server) setUpRouter() {
 	router := gin.Default()
 	server.router = router
-	router.GET("/users", server.getAllUserData)
-	router.GET("/user/:id", server.getUserData)
-	router.POST("/user", server.registerUser)
-	router.POST("/delete/user", server.deleteUser)
-	router.POST("/update/user", server.updateUserInfo)
+	server.userRouterSetting()
 }
 
 func (server *Server) StartServer(address string) error {

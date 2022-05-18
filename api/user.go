@@ -11,6 +11,14 @@ type getAllUserDataResponse struct {
 	Data []userDataResponse `json:"data"`
 }
 
+func (server *Server) userRouterSetting() {
+	server.router.GET("/users", server.getAllUserData)
+	server.router.GET("/user/:id", server.getUserData)
+	server.router.POST("/user", server.registerUser)
+	server.router.POST("/user/delete", server.deleteUser)
+	server.router.POST("/user/update", server.updateUserInfo)
+}
+
 func (server *Server) getAllUserData(c *gin.Context) {
 	var res getAllUserDataResponse
 	users, err := server.store.GetAllUserData()
