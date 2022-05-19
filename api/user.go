@@ -37,9 +37,14 @@ func (server *Server) getAllUserData(c *gin.Context) {
 	return
 }
 
+type userDataRequest struct {
+	Username string `json:"username" binding:"required,min=6,max=10"`
+	Email    string `json:"email" binding:"required,email"`
+}
+
 type userDataResponse struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
+	Username string
+	Email    string
 }
 
 func (server *Server) getUserData(c *gin.Context) {
@@ -62,8 +67,8 @@ func (server *Server) getUserData(c *gin.Context) {
 }
 
 type registerUserRequest struct {
-	userDataResponse
-	Password string `json:"password"`
+	userDataRequest
+	Password string `json:"password" binding:"required,min=6"`
 }
 
 type registerUserResponse struct {
@@ -95,7 +100,7 @@ func (server *Server) registerUser(c *gin.Context) {
 }
 
 type deleteUserRequest struct {
-	userDataResponse
+	userDataRequest
 }
 
 type deleteUserResponse struct {
@@ -124,9 +129,8 @@ func (server *Server) deleteUser(c *gin.Context) {
 }
 
 type updateUserInfoRequest struct {
-	PreEmail string `json:"pre_email"`
-	Email    string `json:"email"`
-	Name     string `json:"username"`
+	userDataRequest
+	PreEmail string `json:"pre_email" binding:"required,email"`
 }
 
 type updateUserInfoResponse struct {
@@ -139,7 +143,7 @@ func (server *Server) updateUserInfo(c *gin.Context) {
 		sendErrorMessage(404, "update user", err, c)
 		return
 	}
-	user, err := server.store.UpdateUserInfo(req.PreEmail, req.Email, req.Name)
+	user, err := server.store.UpdateUserInfo(req.PreEmail, req.Email, req.Username)
 	if err != nil {
 		sendErrorMessage(503, "update user", err, c)
 		return
