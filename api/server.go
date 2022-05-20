@@ -21,8 +21,7 @@ func NewServer(store *db.Store) *Server {
 }
 
 func (server *Server) setUpRouter() {
-	router := gin.Default()
-	server.router = router
+	server.router = gin.Default()
 	server.userRouterSetting()
 }
 

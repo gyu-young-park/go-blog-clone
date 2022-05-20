@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -11,12 +12,20 @@ type getAllUserDataResponse struct {
 	Data []userDataResponse `json:"data"`
 }
 
+func logUserRequest() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		log.Printf("Get user api request")
+	}
+}
+
 func (server *Server) userRouterSetting() {
-	server.router.GET("/users", server.getAllUserData)
-	server.router.GET("/user/:id", server.getUserData)
-	server.router.POST("/user", server.registerUser)
-	server.router.POST("/user/delete", server.deleteUser)
-	server.router.POST("/user/update", server.updateUserInfo)
+	userRouter := server.router.Group("/user")
+	userRouter.Use(logUserRequest())
+	userRouter.GET("/", server.getAllUserData)
+	userRouter.GET("/:id", server.getUserData)
+	userRouter.POST("/", server.registerUser)
+	userRouter.POST("/delete", server.deleteUser)
+	userRouter.POST("/update", server.updateUserInfo)
 }
 
 func (server *Server) getAllUserData(c *gin.Context) {
