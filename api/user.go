@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gyu-young-park/go_blog/util"
 )
 
 type getAllUserDataResponse struct {
@@ -96,7 +97,11 @@ func (server *Server) registerUser(c *gin.Context) {
 		sendErrorMessage(404, "bind user input data", err, c)
 		return
 	}
-	user, err := server.store.RegisterUser(req.Username, req.Email, req.Password)
+	hashedPassword, err := util.HashedPassword(req.Password)
+	if err != nil {
+		sendErrorMessage(503, "insert user", err, c)
+	}
+	user, err := server.store.RegisterUser(req.Username, req.Email, hashedPassword)
 	if err != nil {
 		sendErrorMessage(503, "insert user", err, c)
 		return
