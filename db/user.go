@@ -5,9 +5,10 @@ import (
 )
 
 type User struct {
-	id    int64
-	Name  string
-	Email string
+	id       int64
+	Name     string
+	Email    string
+	Password string
 }
 
 func (store *Store) GetAllUserData() ([]User, error) {
@@ -33,7 +34,7 @@ func (store *Store) GetAllUserData() ([]User, error) {
 
 func (store *Store) GetUserById(id int64) (User, error) {
 	var user User
-	err := store.db.QueryRow("SELECT user_name, email FROM User WHERE id = ?", id).Scan(&user.Name, &user.Email)
+	err := store.db.QueryRow("SELECT user_name, email, password FROM User WHERE id = ?", id).Scan(&user.Name, &user.Email, &user.Password)
 	if err != nil {
 		log.Printf("failed to get USER[%v]\n", err.Error())
 		return user, err

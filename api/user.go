@@ -1,9 +1,10 @@
 package api
 
 import (
+	"database/sql"
 	"fmt"
-	"log"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gyu-young-park/go_blog/util"
@@ -13,15 +14,10 @@ type getAllUserDataResponse struct {
 	Data []userDataResponse `json:"data"`
 }
 
-func logUserRequest() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		log.Printf("Get user api request")
-	}
-}
-
 func (server *Server) userRouterSetting() {
+	server.router.POST("/user/login", server.loginUser)
 	userRouter := server.router.Group("/user")
-	userRouter.Use(logUserRequest())
+	userRouter.Use(authMiddleware(server.tokenMaker))
 	userRouter.GET("/", server.getAllUserData)
 	userRouter.GET("/:id", server.getUserData)
 	userRouter.POST("/", server.registerUser)
@@ -163,4 +159,57 @@ func (server *Server) updateUserInfo(c *gin.Context) {
 		return
 	}
 	c.JSON(200, user)
+}
+
+type loginUserRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+}
+
+type loginUserResponse struct {
+	AccessToken string `json:"access_token"`
+	Email       string `json:"email"`
+}
+
+func (server *Server) loginUser(c *gin.Context) {
+	var req loginUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		sendErrorMessage(404, "login user", err, c)
+		return
+	}
+
+	userId, err := server.store.GetUserIdByEmail(req.Email)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			sendErrorMessage(404, "login user", err, c)
+			return
+		}
+		sendErrorMessage(503, "login user", err, c)
+		return
+	}
+
+	user, err := server.store.GetUserById(userId)
+	if err != nil {
+		sendErrorMessage(503, "login user", err, c)
+		return
+	}
+
+	ok := util.CheckPassword(req.Password, user.Password)
+	if !ok {
+		sendErrorMessage(401, "login user not match password", err, c)
+		return
+	}
+
+	accessToken, err := server.tokenMaker.CreateToken(
+		user.Email,
+		time.Duration(time.Minute),
+	)
+
+	res := loginUserResponse{
+		AccessToken: accessToken,
+		Email:       user.Email,
+	}
+	c.Set("httpOnly", true)
+	c.Set("Secure", true)
+	c.JSON(200, res)
 }

@@ -1,23 +1,31 @@
 package api
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gyu-young-park/go_blog/db"
+	"github.com/gyu-young-park/go_blog/token"
 )
 
 type Server struct {
-	store  *db.Store
-	router *gin.Engine
+	store      *db.Store
+	router     *gin.Engine
+	tokenMaker token.TokenMaker
 }
 
-func NewServer(store *db.Store) *Server {
+func NewServer(store *db.Store) (*Server, error) {
+	tokenMaker, err := token.NewJWTMaker("123456789012345678912345678912345")
+	if err != nil {
+		return nil, fmt.Errorf("cannot create token maker: %w", err)
+	}
 	server := &Server{
-		store: store,
+		store:      store,
+		tokenMaker: tokenMaker,
 	}
 	server.setUpRouter()
-	return server
+	return server, nil
 }
 
 func (server *Server) setUpRouter() {
