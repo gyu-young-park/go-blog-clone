@@ -8,7 +8,7 @@ import (
 	"github.com/gyu-young-park/go_blog/db"
 )
 
-const DSN = "gyu:1234@tcp(127.0.0.1:8002)/blog"
+const DSN = "gyu:1234@tcp(127.0.0.1:8002)/blog?parseTime=true"
 
 func main() {
 	db := db.StartDB("mysql", DSN)

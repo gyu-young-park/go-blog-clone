@@ -31,6 +31,8 @@ func NewServer(store *db.Store) (*Server, error) {
 func (server *Server) setUpRouter() {
 	server.router = gin.Default()
 	server.userRouterSetting()
+	server.postRouterSetting()
+	server.commentRouterSetting()
 }
 
 func (server *Server) StartServer(address string) error {

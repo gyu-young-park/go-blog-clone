@@ -57,12 +57,12 @@ func (server *Server) getUserData(c *gin.Context) {
 	var res userDataResponse
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		sendErrorMessage(503, "get user", err, c)
+		sendErrorMessage(404, "get user", err, c)
 		return
 	}
 	user, err := server.store.GetUserById(int64(id))
 	if err != nil {
-		sendErrorMessage(503, "get user", err, c)
+		sendErrorMessage(404, "get user", err, c)
 		return
 	}
 	res.Email = user.Email
